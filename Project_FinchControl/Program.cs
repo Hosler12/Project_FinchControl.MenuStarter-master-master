@@ -19,7 +19,7 @@ namespace Project_FinchControl
     // **************************************************
 
 
-     public enum Command
+    public enum Command
     {
         NONE,
         MOVEFORWARD,
@@ -44,11 +44,12 @@ namespace Project_FinchControl
         {
             SetTheme();
 
+            DisplayLoginRegister();
             DisplayWelcomeScreen();
             DisplayMenuScreen();
             DisplayClosingScreen();
         }
-
+        
         /// <summary>
         /// setup the console theme
         /// </summary>
@@ -1113,6 +1114,131 @@ namespace Project_FinchControl
         #endregion
 
         #region USER INTERFACE
+
+        /// <summary>
+        /// User Login
+        /// </summary>
+        static void DisplayLoginRegister()
+        {
+            DisplayScreenHeader("Login/Register Menu");
+
+            Console.WriteLine("Are you currently registered [Y / N]");
+            if (Console.ReadLine().ToUpper() == "Y")
+            {
+                DisplayLogin();
+            }
+            else
+            {
+                DisplayRegister();
+                DisplayLogin();
+            }
+        }
+
+        static void DisplayRegister()
+        {
+            string userName;
+            string password;
+
+            DisplayScreenHeader("Registering a new user");
+
+            Console.Write("Please enter the username you would like to use: ");
+            userName = Console.ReadLine();
+            Console.Write($"Please enter the password you would like the account {userName} to have: ");
+            password = Console.ReadLine();
+            WriteLoginInfoData(userName,password);
+
+            Console.WriteLine();
+            Console.WriteLine($"You have registered as {userName}, and have {password} for your password");
+            Console.WriteLine("Please write this down or check the login info text file in the data folder");
+
+            DisplayContinuePrompt();
+        }
+
+        static void WriteLoginInfoData(string userName, string password)
+        {
+            string dataPath = @"Data\LoginInfo.txt";
+            string loginInfo = userName + "," + password;
+            
+            File.AppendAllText(dataPath, "\n" + loginInfo);
+        }   
+
+        static void DisplayLogin()
+        {
+            string userName;
+            string password;
+            bool validLogin;
+
+            do
+            {
+                DisplayScreenHeader("Logging in");
+
+                Console.WriteLine();
+                Console.Write("Please enter registered username: ");
+                userName = Console.ReadLine();
+                Console.Write($"Please enter your password, {userName}: ");
+                password = Console.ReadLine();
+
+                validLogin = IsValidLogin(userName, password);
+
+                Console.WriteLine();
+                if (validLogin)
+                {
+                    Console.WriteLine($"You are now logged in {userName}");
+                }
+                else
+                {
+                    Console.WriteLine("Username or password is incorrect.");
+                    Console.WriteLine("Please try again");
+                }
+
+                DisplayContinuePrompt();
+            } while (!validLogin);
+
+        }
+
+        static bool IsValidLogin(string userName, string password)
+        {
+            List<(string userName, string password)> registeredUserInfo = new List<(string userName, string password)>();
+            bool validUser = false;
+
+            registeredUserInfo = ReadLoginInfo();
+
+            foreach ((string userName, string password) userInfo in registeredUserInfo)
+            {
+                if ((userInfo.userName == userName) && (userInfo.password == password))
+                {
+                    validUser = true;
+                    break;
+                }
+            }
+            
+            return validUser;
+        }
+
+        static List<(string userName, string password)> ReadLoginInfo()
+        {
+            string dataPath = @"Data/LoginInfo.txt";
+
+            string[] loginArray;
+            (string userName, string password) loginTuple;
+                        
+            List<(string userName, string password)> registeredUserInfo = new List<(string userName, string password)>();
+
+            loginArray = File.ReadAllLines(dataPath);
+            
+            foreach (string loginInfoText in loginArray)
+            {
+                loginArray = loginInfoText.Split(',');
+
+                loginTuple.userName = loginArray[0];
+                loginTuple.password = loginArray[1];
+
+                registeredUserInfo.Add(loginTuple);
+            }
+
+            return registeredUserInfo;
+        }
+
 
         /// <summary>
         /// *****************************************************************
